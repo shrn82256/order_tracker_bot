@@ -1,12 +1,13 @@
 const token = process.env.TELEGRAM_API_TOKEN;
-
 const puppeteer = require("puppeteer");
-require("dotenv").config();
+
+const Bot = require("node-telegram-bot-api");
+let bot;
 
 global.currentChatId = -1;
 global.currentBody = "";
 global.count = 0;
-/* 
+
 var intervalID = setInterval(() => {
   console.log("Hello World!");
   (async ({ EMAIL, PASSWORD, REDIRECT }) => {
@@ -38,10 +39,11 @@ var intervalID = setInterval(() => {
 
     // console.log(containerText);
 
-    if (global.currentBody != containerText) {
+    if (global.currentBody != containerText && global.currentChatId !== -1) {
       global.currentBody = containerText;
       global.count += 1;
       await page.screenshot({ path: "example.png", fullPage: true });
+      bot.sendPhoto(global.currentChatId, __dirname + "/example.png");
     }
 
     console.log("global count", global.count);
@@ -52,9 +54,6 @@ var intervalID = setInterval(() => {
     return containerText;
   })(process.env);
 }, 1000 * 20);
- */
-const Bot = require("node-telegram-bot-api");
-let bot;
 
 if (process.env.NODE_ENV === "production") {
   bot = new Bot(token);
@@ -67,11 +66,12 @@ if (process.env.NODE_ENV === "production") {
 console.log("Bot server started in the " + process.env.NODE_ENV + " mode");
 
 bot.on("message", msg => {
-  const name = msg.from.first_name;
-  const text = msg.text;
-  bot.sendMessage(msg.chat.id, `Hello ${name}! ${text}`).then(() => {
-    bot.sendPhoto(msg.chat.id, __dirname + "/sample.jpg");
-  });
+  if (msg.txt == "Start") {
+    global.currentChatId = msg.chat.id;
+    bot.sendMessage(msg.chat.id, "started");
+  } else if (msg.txt == "Status") {
+    bot.sendPhoto(msg.chat.id, __dirname + "/example.png");
+  }
 });
 
 module.exports = bot;
