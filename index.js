@@ -39,4 +39,6 @@ app.post("/start_bot", function(req, res) {
 
 app.get("/test", (req, res) => res.send("Hello World!"));
 
-app.listen(3000, () => console.log("Telegram bot is listening on port 3000!"));
+app.listen(process.env.PORT, () =>
+  console.log("Telegram bot is listening on port 3000!")
+);
