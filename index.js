@@ -36,3 +36,7 @@ app.post("/start_bot", function(req, res) {
   let reply = "Welcome to telegram weather bot" + message;
   sendMessage(telegram_url, message, reply, res);
 });
+
+app.get("/test", (req, res) => res.send("Hello World!"));
+
+app.listen(3000, () => console.log("Telegram bot is listening on port 3000!"));
