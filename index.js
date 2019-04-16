@@ -33,8 +33,13 @@ function sendMessage(url, message, reply, res) {
 
 app.post("/start_bot", function(req, res) {
   const { message } = req.body;
-  let reply = "Welcome to telegram weather bot" + message.text;
-  console.log(message);
+  if ("text" in message) {
+    var reply = `${message.text} to you too`;
+  } else {
+    var reply = "kuch dhang ka likh be";
+    console.log(message);
+  }
+
   sendMessage(telegram_url, message, reply, res);
 });
 
