@@ -1,3 +1,6 @@
 {
-  "name": "order_tracker"
+  "name": "order_tracker",
+  "env": {
+    "TELEGRAM_API_TOKEN": "@TELEGRAM_API_TOKEN"
+  }
 }
