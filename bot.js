@@ -18,13 +18,15 @@ if (process.env.NODE_ENV === "production") {
 console.log("Bot server started in the " + process.env.NODE_ENV + " mode");
 
 bot.on("message", msg => {
-  if (msg.txt == "Start") {
+  const { text } = msg;
+
+  if (text === "Start") {
     global.currentChatId = msg.chat.id;
     bot.sendMessage(msg.chat.id, "started");
-  } else if (msg.txt == "Status") {
+  } else if (text === "Status") {
     bot.sendPhoto(msg.chat.id, __dirname + "/sample.jpg");
   } else {
-    bot.sendMessage(msg.chat.id, msg.text);
+    bot.sendMessage(msg.chat.id, text);
   }
 });
 
