@@ -1,32 +1,43 @@
+const TelegramBot = require("node-telegram-bot-api");
+const scrapper = require("./scrapper");
+const packageInfo = require("./package.json");
+
 const token = process.env.TELEGRAM_API_TOKEN;
+global.current_chat_id = -1;
+global.current_data = "";
 
-const Bot = require("node-telegram-bot-api");
-let bot;
+const bot = new TelegramBot(token, { polling: true });
 
-global.currentChatId = -1;
-global.currentBody = "";
-global.count = 0;
-
-if (process.env.NODE_ENV === "production") {
-  bot = new Bot(token);
-  console.log(process.env.HEROKU_URL + bot.token);
-  bot.setWebHook(process.env.HEROKU_URL + bot.token);
-} else {
-  bot = new Bot(token, { polling: true });
-}
-
-console.log("Bot server started in the " + process.env.NODE_ENV + " mode");
+setInterval(function() {
+  scrapper.then(data => {
+    if (data != global.current_data && global.current_chat_id != -1) {
+      global.current_data = data;
+      bot.sendMessage(global.current_chat_id, data);
+    }
+  });
+}, 1000 * 60 * 5);
 
 bot.on("message", msg => {
   const { text } = msg;
 
+  var reply = "Hey!\n";
+
   if (text === "Start") {
-    global.currentChatId = msg.chat.id;
-    bot.sendMessage(msg.chat.id, "started");
+    reply += `started\t${packageInfo.version}\n`;
+    reply += `current\t${global.current_chat_id}\n`;
+    reply += `new\t${msg.chat.id}\n`;
+
+    bot.sendMessage(msg.chat.id, reply);
+    global.current_chat_id = msg.chat.id;
   } else if (text === "Status") {
-    bot.sendPhoto(msg.chat.id, __dirname + "/sample.jpg");
+    scrapper.then(data => {
+      reply += data;
+      bot.sendMessage(msg.chat.id, reply);
+    });
+    // bot.sendPhoto(msg.chat.id, __dirname + "/sample.jpg");
   } else {
-    bot.sendMessage(msg.chat.id, text);
+    reply += text;
+    bot.sendMessage(msg.chat.id, reply);
   }
 });
 

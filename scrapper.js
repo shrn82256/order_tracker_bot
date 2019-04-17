@@ -1,58 +1,25 @@
-const puppeteer = require("puppeteer");
-require("dotenv").config();
+const rp = require("request-promise");
+const cheerio = require("cheerio");
 
-global.currentBody = "";
-global.count = 0;
+const AWB = process.env.AWB;
 
-var intervalID = setInterval(() => {
-  console.log("Hello World!");
-  (async ({ EMAIL, PASSWORD, REDIRECT }) => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto("https://www.cubelelo.com/login");
+module.exports = rp({
+  method: "POST",
+  uri: "https://www.bdtracking.in/blueDart/blueDartWork.php",
+  form: {
+    traceStatusFormSubmit: "traceStatusFormSubmit",
+    awb: "awb",
+    numbers: AWB
+  }
+}).then(body => {
+  const $ = cheerio.load(body);
+  const data = $(`tr[bgcolor="WHITE"]:nth-child(4) td`)
+    .map((i, el) =>
+      $(el)
+        .text()
+        .trim()
+    )
+    .get();
 
-    await page.waitFor(`input[name="email"]`);
-    await page.$eval(
-      `input[name="email"]`,
-      (el, value) => (el.value = value),
-      EMAIL
-    );
-    await page.waitFor(`input[name="password"]`);
-    await page.$eval(
-      `input[name="password"]`,
-      (el, value) => (el.value = value),
-      PASSWORD
-    );
-    /* await page.waitFor(`input[name="redirect"]`);
-    await page.$eval(
-      `input[name="redirect"]`,
-      (el, value) => (el.value = value),
-      REDIRECT
-    ); */
-
-    await page.click(`input[value="Login"]`);
-    await page.waitForNavigation();
-
-    await page.goto(REDIRECT);
-
-    const containerText = await page.evaluate(
-      () => document.getElementById("group-content").textContent
-    );
-
-    // console.log(containerText);
-
-    if (global.currentBody !== containerText)
-      console.log("global count", global.count);
-
-    console.log("New Page URL:", page.url());
-
-    global.currentBody = containerText;
-    global.count += 1;
-
-    await page.screenshot({ path: "example.png", fullPage: true });
-
-    await browser.close();
-
-    return containerText;
-  })(process.env);
-}, 1000 * 20);
+  return `*${AWB}*\n${data[0]}\n${data[1]}\n${data[3]} ${data[2]}`;
+});
